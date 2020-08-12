@@ -9,12 +9,13 @@ namespace MobileApp
         {
             InitializeComponent();
 
+            ConfigureDatabase();
+
             MainPage = new MainPage();
         }
 
         protected override void OnStart()
         {
-            ConfigureDatabase();
         }
 
         protected override void OnSleep()

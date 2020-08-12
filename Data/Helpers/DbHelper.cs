@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Data.Contexts;
+using System;
 
 namespace Data.Helpers
 {
@@ -7,9 +8,20 @@ namespace Data.Helpers
         private static bool _connectionStringInitialized;
         private static IConnectionString _connectionString = null;
 
+        public static bool ConnectionStringInitialized => _connectionStringInitialized;
+
         public static OceanDbContext GetContext()
         {
-            return new OceanDbContext();
+            var provider = GetConnectionString().GetProvider();
+            switch (provider)
+            {
+                case DbProvider.Sqlite:
+                    return new SqliteOceanDbContext();
+                case DbProvider.PostgreSql:
+                    return new PostgreSqlOceanDbContext();
+                default:
+                    throw new Exception($"Invalid {nameof(DbProvider)} - {provider}");
+            }
         }
 
         public static void SetConnectionString(IConnectionString cs)
