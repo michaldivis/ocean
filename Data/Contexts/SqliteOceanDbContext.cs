@@ -5,6 +5,9 @@ using System.Diagnostics;
 
 namespace Data.Contexts
 {
+    /// <summary>
+    /// The SQLite implementation of <see cref="OceanDbContext"/>
+    /// </summary>
     public class SqliteOceanDbContext : OceanDbContext
     {
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)

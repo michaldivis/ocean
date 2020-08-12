@@ -5,6 +5,9 @@ using System.Diagnostics;
 
 namespace Data.Contexts
 {
+    /// <summary>
+    /// The PostgreSQL implementation of <see cref="OceanDbContext"/>
+    /// </summary>
     public class PostgreSqlOceanDbContext : OceanDbContext
     {
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)

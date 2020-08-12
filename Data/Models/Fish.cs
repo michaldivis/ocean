@@ -3,6 +3,9 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Data.Models
 {
+    /// <summary>
+    /// An examle data model class
+    /// </summary>
     public class Fish
     {
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]

@@ -8,6 +8,9 @@ using System.Linq;
 
 namespace Logic
 {
+    /// <summary>
+    /// An example view model that holds some items and allows to add new items
+    /// </summary>
     public class MainViewModel
     {
         public ObservableCollection<Fish> Fishes { get; set; } = new ObservableCollection<Fish>();
@@ -18,6 +21,9 @@ namespace Logic
             LoadFishes();
         }
 
+        /// <summary>
+        /// Adds a new fish with random values to the <see cref="Fishes"/> collection and also saves it in the database
+        /// </summary>
         public void AddRandomFish()
         {
             var randy = new Random();
@@ -35,6 +41,9 @@ namespace Logic
             }
         }
 
+        /// <summary>
+        /// Loads any previously created fish from the database to the <see cref="Fishes"/> collection
+        /// </summary>
         public void LoadFishes()
         {
             using (var db = DbHelper.GetContext())
@@ -47,6 +56,15 @@ namespace Logic
             }
         }
 
+        /// <summary>
+        /// Initializes the database
+        /// </summary>
+        /// <remarks>
+        /// <list type="bullet">
+        /// <item>Makes sure that the database exists</item>
+        /// <item>Makes sure the database schema is up to date</item>
+        /// </list>
+        /// </remarks>
         public void InitializeDatabase()
         {
             try

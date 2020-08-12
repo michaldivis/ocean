@@ -1,5 +1,8 @@
 ﻿namespace Data.Helpers
 {
+    /// <summary>
+    /// The PostgreSQL implementation of <see cref="IConnectionString"/>
+    /// </summary>
     public class PostgreSqlConnectionString : IConnectionString
     {
         public string Host { get; set; }

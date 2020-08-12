@@ -1,5 +1,8 @@
 ﻿namespace Data.Config
 {
+    /// <summary>
+    /// Holds the database migration constants
+    /// </summary>
     public static class MigrationConstants
     {
         public const string SqliteConnectionString = "Data Source=nothing.db;";
