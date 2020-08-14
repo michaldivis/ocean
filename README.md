@@ -1,17 +1,18 @@
-# An example app showing a shared EF Core database project for use in WPF and Xamarin.Forms apps
-
-How to use a single EntityFramework Core project in both WPF and Xamarin.Forms apps. In theory, it's dead simple, but there are a few little things you have tinker with in order to actually make it work. 
+*I could never find a good example of using a single EntityFramework Core project in both WPF and Xamarin.Forms apps, with multiple providers. In theory, it's dead simple, but there are a few little things you have to tinker with to make it work. Here's how...*
 
 ### The basic idea
-The way I go about this is creating a basic database contexts that only contains the `DbSet` properties and then making another context that derrives from it for each database provider (PostgreSQL, SQLite in this case). The derrives context then override their `OnConfiguring` methods where they setup the connection for their specific provider using a connection string extracted from a helper class.
+The way I go about this is I create a basic database context that only contains the `DbSet` properties and then make one more context per database provider (PostgreSQL, SQLite in this case) that derives from the basic one. The derived contexts then override their `OnConfiguring` methods where they set up the connection for their specific provider using a connection string extracted from a helper class.
+
+Why multiple database contexts?
+In short: migrations. We want to be able to perform migrations for each provider separately since each provider might need the migration to be a bit different from the others. Having multiple contexts allows us to call the `Add-Migration` command on each of the contexts separately.
 
 ### Check out the example project
 Check out the repository with the complete solution at https://github.com/michaldivis/ocean
 
-## Solution structure
-### Data (.NET Standard class library) 
-This project will contain the EF Core database context, data models and some helpers.
-#### Dependencies
+# Solution structure
+## Data (.NET Standard class library) 
+This project will contain the EF Core database context, data models, and some helpers.
+### Dependencies
 - Nuget
   - Microsoft.EntityFrameworkCore
   - Microsoft.EntityFrameworkCore.Design
@@ -19,17 +20,17 @@ This project will contain the EF Core database context, data models and some hel
   - Npgsql.EntityFrameworkCore.PostgreSQL
   - Microsoft.EntityFrameworkCore.Sqlite
 
-### Logic (.NET Standard class library)
+## Logic (.NET Standard class library)
 This project will contain a simple view model that will be shared by the other apps. This will be referencing the Data project.
-#### Dependencies
+### Dependencies
 - Projects
   - Data
 - Nuget
   - Microsoft.EntityFrameworkCore
 
-### DesktopApp (.NET Core WPF)
-An example WPF app that will use PostgreSQL as it's database. This will be referencing the Data and Logic projects.
-#### Dependencies
+## DesktopApp (.NET Core WPF)
+An example WPF app that will use PostgreSQL as the database. This will be referencing the Data and Logic projects.
+### Dependencies
 - Projects
   - Data
   - Logic
@@ -37,9 +38,9 @@ An example WPF app that will use PostgreSQL as it's database. This will be refer
   - Microsoft.EntityFrameworkCore
   - Npgsql.EntityFrameworkCore.PostgreSQL
 
-### MobileApp (Xamarin.Forms)
-An example mobile app that will use SQLite as it's database. This will be referencing the Data and Logic projects.
-#### Dependencies
+## MobileApp (Xamarin.Forms)
+An example mobile app that will use SQLite as the database. This will be referencing the Data and Logic projects.
+### Dependencies
 - Projects
   - Data
   - Logic
@@ -47,21 +48,21 @@ An example mobile app that will use SQLite as it's database. This will be refere
   - Microsoft.EntityFrameworkCore
   - Microsoft.EntityFrameworkCore.Sqlite
 
-## Used versions
+# Used versions
 
-### SDK
+## SDK
 - .NET Core 3.1
 - .NET Standard 2.0
 - Xamarin.Forms 4.8
 
-### Nuget packages
+## Nuget packages
 - Microsoft.EntityFrameworkCore 3.1.7
 - Npgsql.EntityFrameworkCore.PostgreSQL 3.1.4
 - Microsoft.EntityFrameworkCore.Sqlite 3.1.7
 
-## Creating the data project - contexts, models, helpers
+# Creating the data project - contexts, models, helpers
 
-### Folders
+## Folders
 I've created two folders in the data project
 - Config - migration configuration values will be here
 - Contexts - db contexts for different platforms will be here
@@ -71,7 +72,7 @@ I've created two folders in the data project
     - SqliteMigrations - Migrations for SQLite will be here
 - Models - data model classes will be here
 
-### Models
+## Models
 Let's say we want to have a database of fish. Here's a class called `Fish`.
 
 ```csharp
@@ -92,13 +93,13 @@ namespace Data.Models
 ```
 I'm going to using this class as the example data model.
 
-### A way to use different database contexts for different platforms
+## A way to use different database contexts for different platforms
 
 Since we want to use different databases (PostgreSQL, SQLite) for the two apps, we'll need a way to make the Data project take in some configuration (wanted database provider, connection string).
 
-For that I've created following items in the "Helpers" folder:
+For that I've created the following items in the "Helpers" folder:
 
-#### DbProvider.cs
+### DbProvider.cs
 This is an enum that will help us determine what database provider to use
 ```csharp
 namespace Data.Helpers
@@ -111,7 +112,7 @@ namespace Data.Helpers
 }
 ```
 
-#### IConnectionString.cs
+### IConnectionString.cs
 An abstraction of a connection string, which differs from one provider to another
 ```csharp
 namespace Data.Helpers
@@ -124,7 +125,7 @@ namespace Data.Helpers
 }
 ```
 
-#### PostgreSqlConnectionString.cs
+### PostgreSqlConnectionString.cs
 A connection string definition for PostgreSQL
 ```csharp
 namespace Data.Helpers
@@ -150,7 +151,7 @@ namespace Data.Helpers
 }
 ```
 
-#### SqliteConnectionString.cs
+### SqliteConnectionString.cs
 A connection string definition for SQLite
 ```csharp
 namespace Data.Helpers
@@ -172,7 +173,7 @@ namespace Data.Helpers
 }
 ```
 
-#### DbHelper.cs
+### DbHelper.cs
 This static class is going to be used to configure the connection from the other projects (DesktopApp, MobileApp)
 ```csharp
 using Data.Contexts;
@@ -220,9 +221,9 @@ namespace Data.Helpers
 }
 ```
 
-### Database contexts
+## Database contexts
 
-In order to use this on multiple platforms, we need to have different database contexts for each platform. However, they need to share the same data sets.
+To use this on multiple platforms, we need to have different database contexts for each platform. However, they need to share the same data sets.
 
 That's why we'll create one base context and derive the others from that.
 
@@ -297,13 +298,13 @@ namespace Data.Contexts
 }
 ```
 
-### Almost ready, let's migrate
+## Almost ready, let's migrate
 
 Now before we use the app, there's one last step - migrations.
 
-In order to create an initial (or any other) migration for each database context, we'll to do following:
+To create an initial (or any other) migration for each database context, we'll to do the following:
 
-#### Change the Data project's target framework to multiple targets in order to run migrations with it
+### Change the Data project's target framework to multiple targets to run migrations with it
 
 Go to the Data.csproj and change this:
 ```
@@ -318,7 +319,7 @@ to this
 
 The reason we do that is to be able to run commands using the Data project in the Package Manager Console (which needs a runnable project type to function).
 
-#### Migrate
+### Migrate
 
 Open the Package Manager Console (Tools -> Nuget Package Manager -> Package Manager Console in Visual Studio 2019)
 
@@ -326,29 +327,29 @@ Make sure to have the Data project selected as the default project.
 
 And run the migration command:
 
-##### SQLite migration command
+#### SQLite migration command
 `Add-Migration SqliteMigration001 -Context SqliteOceanDbContext -OutputDir Migrations/SqliteMigrations`
 
-##### PostgreSQL migration command
+#### PostgreSQL migration command
 `Add-Migration PostgreSqlMigration001 -Context PostgreSqlOceanDbContext -OutputDir Migrations/PostgreSqlMigrations`
 
 After the command finishes, there should be some new files in the corresponding Migrations/ folder.
 
 We're now ready to use the thing!
 
-## Configuring the connection for each platform
+# Configuring the connection for each platform
 
-### MobileApp project
+## MobileApp project
 
 Now let's configure the database from the mobile project.
 
 Let's first add a reference to the Data project.
 
-#### Database file path
+### Database file path
 
 We'll need a way to get some valid database file path for each platform (Android, iOS). Let's do that.
 
-##### Create an interface called `IDbPathFinder` in the MobileApp project
+#### Create an interface called `IDbPathFinder` in the MobileApp project
 
 ```csharp
 namespace MobileApp
@@ -360,7 +361,7 @@ namespace MobileApp
 }
 ```
 
-##### Create an Android implementation of that interface in the MobileApp.Android project
+#### Create an Android implementation of that interface in the MobileApp.Android project
 
 ```csharp
 using MobileApp.Droid;
@@ -381,7 +382,7 @@ namespace MobileApp.Droid
 }
 ```
 
-##### Create an iOS implementation of that interface in the MobileApp.iOS project
+#### Create an iOS implementation of that interface in the MobileApp.iOS project
 
 ```csharp
 using MobileApp.iOS;
@@ -402,11 +403,11 @@ namespace MobileApp.iOS
 }
 ```
 
-#### Configuring on start
+### Configuring on start
 
-In order to configure the database connection before we need to use, we'll make all the call in the `App.xaml.cs` file.
+To configure the database connection before we need to use, we'll make all the call in the `App.xaml.cs` file.
 
-We'll add a method called `ConfigureDatabase`, that will contain the configration and then call that method from the `OnStart` method.
+We'll add a method called `ConfigureDatabase`, that will contain the configuration and then call that method from the `OnStart` method.
 
 The App.xaml.cs file should now look like this:
 
@@ -448,13 +449,13 @@ namespace MobileApp
 }
 ```
 
-### DesktopApp project
+## DesktopApp project
 
 Now let's configure the database from the desktop project.
 
 Let's first add a reference to the Data project.
 
-In order to configure the database connection before we need to use, we'll make all the call in the `App.xaml.cs` file.
+To configure the database connection before we need to use, we'll make all the call in the `App.xaml.cs` file.
 
 Add a method called `ConfigureDatabase`, that will contain the configration.
 
@@ -494,11 +495,11 @@ Note that in this example I'm hard coding the connection string, which is a terr
 
 
 
-## Let's try it
+# Let's try it
 
-### Basic view model
+## Basic view model
 
-In order to try this, I'll create a simple class called `MainViewModel` that will serve as a view model for both the DesktopApp and the MobileApp.
+To try this, I'll create a simple class called `MainViewModel` that will serve as a view model for both the DesktopApp and the MobileApp.
 
 I've referenced the Data project and created the following class:
 ```csharp
@@ -569,7 +570,7 @@ namespace Logic
 }
 ```
 
-### Desktop app view
+## Desktop app view
 
 I've added a reference to the Logic project and edited the MainWindow to look like this:
 
@@ -634,7 +635,7 @@ MainWindow.xaml
 </Window>
 ```
 
-### Mobile app view
+## Mobile app view
 
 I've added a reference to the Logic project and edited the MainPage to look like this:
 
@@ -700,9 +701,5 @@ MainPage.xaml
 </ContentPage>
 ```
 
-## That's it
-Wohoo! That's it.
-
-
-
-
+# That's it
+Woohoo! That's it.
