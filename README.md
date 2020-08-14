@@ -6,9 +6,6 @@ The way I go about this is I create a basic database context that only contains 
 Why multiple database contexts?
 In short: migrations. We want to be able to perform migrations for each provider separately since each provider might need the migration to be a bit different from the others. Having multiple contexts allows us to call the `Add-Migration` command on each of the contexts separately.
 
-### Check out the example project
-Check out the repository with the complete solution at https://github.com/michaldivis/ocean
-
 # Solution structure
 ## Data (.NET Standard class library) 
 This project will contain the EF Core database context, data models, and some helpers.
